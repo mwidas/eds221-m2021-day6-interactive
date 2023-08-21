@@ -97,7 +97,7 @@ wb_indicators_tidy <- wb_indicators_clean %>%
 # names(wb_indicators_tidy)
 ```
 
-## Make a chart showing years and 
+## Make a chart showing years and
 
 ```{r}
 ggplot(data = wb_indicators_tidy, aes(x = year, y = co2_emissions_kt)) +
