@@ -1,0 +1,18 @@
+---
+title: "warm_up"
+format: html
+editor: visual
+---
+
+## 
+
+```{r}
+book_character <- c("brown bear", "red bird", "yellow duck", "blue horse")
+
+for (i in 1:(length(book_character) - 1)) {
+  print(paste(book_character[i], book_character[i], "what do you see?", "I see a", book_character[i+1], "looking at me"))
+  
+} 
+
+
+```
