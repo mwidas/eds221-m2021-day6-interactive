@@ -11,3 +11,96 @@ library(tidyverse)
 library(here)
 library(janitor)
 ```
+
+## Pivots
+
+-   using wold back data that is not tidy
+
+-   why is it not tidy?
+
+    -   each year is a column instead of 1 column for all the years
+
+    -   series_name contains a bunch of variables so they need to be separated
+
+        -   also but not in regards to tidy their are missing values
+
+```{r}
+# read in file from downstream of main and correctly identify the different na values
+
+wb_indicators <- read_csv(here("data", "wb_indicators.csv"), na = c("..", " ", ""))
+```
+
+```{r}
+# melt years columns together
+
+wb_indicators_long <- wb_indicators %>% 
+  pivot_longer(cols = `2001 [YR2001]` : `2020 [YR2020]`,
+               names_to = "year",
+               values_to = "indicator_value")
+```
+
+```{r}
+# separate years and yr code in same column into two columns
+
+wb_indicators_clean <- wb_indicators_long %>% 
+  tidyr::separate(col = "year",
+           into = c("year", "year_chr"),
+           sep = " ") %>% 
+  
+# remove some columns, aka everything except
+  
+  dplyr::select(-year_chr, -`Country Code`, -`Series Code`)
+```
+
+```{r}
+# checking what the different unique values are of series name column
+
+unique(wb_indicators_clean$`Series Name`)
+```
+
+```{r}
+wb_indicators_tidy <- wb_indicators_clean %>% 
+  
+  # drop whole row if this is a missing value
+  
+  tidyr::drop_na(`Series Name`) %>% 
+  
+  # use pivot wider to fix series name
+  
+  tidyr::pivot_wider(names_from = `Series Name`,
+                     values_from = indicator_value) %>% 
+  
+  # use rename to name new columns in relation to the variable instead of the position
+  
+  dplyr::rename(country = "Country Name",
+                access_fuels_pp = "Access to clean fuels and technologies for cooking (% of population)",
+               access_electricity_pp = "Access to electricity (% of population)",
+               co2_emissions_kt = "CO2 emissions (kt)",
+               fossil_fuels_cons_pt = "Fossil fuel energy consumption (% of total)",
+               water_stress = "Level of water stress: freshwater withdrawal as a proportion of available freshwater resources") %>% 
+  
+  # need year to be numeric not a character to plot on a line 
+  
+  dplyr::mutate(year = as.numeric(year))
+```
+
+```{r}
+# renaming based only on position - not a good idea
+
+# names(wb_indicators_tidy) <- c("country",
+#                                "year",
+#                                "access_clean_fuels_pp",
+#                                "access_electricity_pp",
+#                                "co2_emissions_kt",
+#                                "fossil_fuels_cons_pt",
+#                                "water_stress")
+# names(wb_indicators_tidy)
+```
+
+## Make a chart showing years and 
+
+```{r}
+ggplot(data = wb_indicators_tidy, aes(x = year, y = co2_emissions_kt)) +
+  geom_line(aes(color = country)) +
+  theme(legend.position = "none")
+```
